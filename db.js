@@ -1,17 +1,21 @@
-const Database = require("better-sqlite3");
+const fs = require("fs");
 const path = require("path");
+const Database = require("better-sqlite3");
 
 const isRender = process.env.RENDER === "true";
 
-// Render: persist DB inside /data
-// Local: store DB inside backend folder
-const dbFile = isRender
-  ? "/data/inventory.db"
-  : path.join(__dirname, "inventory.db");
 
-const db = new Database(dbFile);
+const dbDir = isRender ? "/data" : __dirname;
+const dbPath = isRender ? "/data/inventory.db" : path.join(__dirname, "inventory.db");
 
-// Create tables
+
+if (isRender && !fs.existsSync(dbDir)) {
+  fs.mkdirSync(dbDir);
+}
+
+
+const db = new Database(dbPath);
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS products (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -22,7 +26,7 @@ db.exec(`
     stock INTEGER NOT NULL,
     status TEXT,
     image TEXT
-  )
+  );
 `);
 
 db.exec(`
@@ -34,7 +38,7 @@ db.exec(`
     change_date TEXT,
     user_info TEXT,
     FOREIGN KEY(product_id) REFERENCES products(id)
-  )
+  );
 `);
 
 module.exports = db;
