@@ -1,15 +1,23 @@
 const path = require("path");
+const fs = require("fs");
 const Database = require("better-sqlite3");
+
+// Correct persistent directory for Render
+const renderDataDir = "/opt/render/project/data";
 
 const isRender = process.env.RENDER === "true";
 
 // Database path
 const dbPath = isRender
-  ? "/data/inventory.db"       // Render persistent database
+  ? path.join(renderDataDir, "inventory.db")
   : path.join(__dirname, "inventory.db");
 
-// better-sqlite3 will automatically create the DB file if missing
-const db = new Database(dbPath, { verbose: console.log });
+// Ensure directory exists in Render
+if (isRender && !fs.existsSync(renderDataDir)) {
+  fs.mkdirSync(renderDataDir, { recursive: true });
+}
+
+const db = new Database(dbPath);
 
 // Create tables
 db.exec(`
